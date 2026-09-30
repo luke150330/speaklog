@@ -1,0 +1,4 @@
+Oct 01 09:00:00 demo app[123]: Permission denied opening /srv/demo/config
+Oct 01 09:00:01 demo systemd[1]: demo.service: Main process exited, code=exited, status=1/FAILURE
+Oct 01 09:00:02 demo systemd[1]: demo.service: Failed with result 'exit-code'.
+Oct 01 09:00:03 demo app[124]: No space left on device

@@ -1,0 +1,4 @@
+2026/10/01 09:00:00 [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/10/01 09:00:01 [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)
+2026/10/01 09:05:00 [error] connect() failed (111: Connection refused) while connecting to upstream, client: 192.0.2.10
+2026/10/01 09:07:00 [error] upstream timed out while reading response header
