@@ -17,3 +17,13 @@ Local validation date: 2026-10-01. Python 3.12.9 on macOS.
   the source directory.
 
 This is a correctness smoke test, not an accuracy benchmark or privacy audit.
+
+## v0.1.1 regression validation — 2026-10-01
+
+- Four added tests reproduced six failing assertions on 0.1.0: partially
+  exposed authentication/Cookie values, URL credentials and PEM content.
+- All 21 tests pass after the fixes, including original evidence line numbers
+  after multiline private-key redaction and headers on preceding lines.
+- The v0.1.0 GitHub matrix run passed on Python 3.10, 3.12 and 3.13:
+  https://github.com/luke150330/speaklog/actions/runs/36734847561
+- No production logs or live AI providers were used for this update.

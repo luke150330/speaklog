@@ -1,5 +1,6 @@
 """Deterministic explanations with original line references. No network."""
 import re
+from . import __version__
 
 MAX_BYTES = 2 * 1024 * 1024
 RULES = [
@@ -17,9 +18,17 @@ KEY = re.compile(r"\b(?:sk-[A-Za-z0-9_-]{8,}|gh[pousr]_[A-Za-z0-9_]{8,}|eyJ[A-Za
 EMAIL = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+HEADER = re.compile(r"""(?im)(\b(?:proxy-authorization|authorization|set-cookie|cookie)\b["']?[ \t]*[:=][ \t]*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\r\n]+)""")
+URL_CREDENTIALS = re.compile(r"""(?i)(\b[a-z][a-z0-9+.-]*://)[^/\s@"']+@""")
+PRIVATE_KEY = re.compile(r"-----BEGIN ([A-Z0-9 ]*PRIVATE KEY)-----.*?-----END \1-----", re.S)
 
 def redact(text):
     text = ANSI.sub("", text)
+    # Preserve newlines so evidence continues to refer to original input lines.
+    text = PRIVATE_KEY.sub(lambda m: "[PRIVATE KEY REDACTED]" + "\n" * m[0].count("\n"), text)
+    text = URL_CREDENTIALS.sub(lambda m: m[1] + "[CREDENTIALS]@", text)
+    # Unquoted headers are conservatively redacted through end-of-line.
+    text = HEADER.sub(lambda m: m[1] + "[REDACTED]", text)
     text = BEARER.sub("Bearer [REDACTED]", text)
     text = SECRET.sub(lambda m: m[1] + "[REDACTED]", text)
     text = KEY.sub("[SECRET]", text)
@@ -46,7 +55,7 @@ def analyze(text, lang="zh"):
     known_lines = {i for _, pattern, *_ in RULES for i, line in enumerate(lines, 1) if re.search(pattern, line, re.I)}
     unknown = [dict(line=i, text=line) for i, line in enumerate(lines, 1)
                if i not in known_lines and re.search(r"\berror\b|\bfatal\b|exception|traceback", line, re.I)]
-    return dict(version="0.1.0", language=lang, line_count=len(lines), findings=findings,
+    return dict(version=__version__, language=lang, line_count=len(lines), findings=findings,
                 unclassified=unknown[:20], unclassified_omitted=max(0,len(unknown)-20),
                 warning="Heuristic explanations are not verified root causes. Redaction is best-effort; review before sharing.",
                 redacted_log=safe)

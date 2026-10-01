@@ -4,7 +4,7 @@
 
 Turn server logs into plain-language explanations with evidence.
 
-**v0.1.0 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
+**v0.1.1 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
 Chinese and English reports. No telemetry, account or shared API key.
 
 ## Quick start
@@ -42,6 +42,8 @@ journalctl -u nginx --no-pager -n 200 | speaklog -
 - Suggested checks and explicit uncertainty; no automatic repair or shell execution.
 - Unknown errors shown instead of inventing an explanation.
 - Best-effort redaction of common credentials, email addresses and IPv4 addresses.
+- Full Authorization/Cookie header values, URL credentials and complete PEM
+  private-key blocks are redacted; original evidence line numbering is retained.
 
 For example, `Address already in use` becomes:
 “Port is already in use. The log reports a listening-port conflict;
@@ -68,6 +70,9 @@ Provider advice is unverified, displayed as text and never executed.
 
 Redaction is **not a security guarantee**. IPv6 addresses, personal names,
 paths and unknown secret formats may remain. Review before sharing.
+Unquoted sensitive headers are removed through the end of their line, so adjacent
+diagnostic fields on that line may also be omitted. Incomplete PEM blocks are not
+guaranteed to be redacted. This release is still not a comprehensive secret scanner.
 No root-cause confirmation, timestamp correlation, continuous monitoring or
 full log-format parser is claimed. A report with no findings does not prove health.
 Remote AI may retain data according to its own policies. Offline mode makes no network calls.

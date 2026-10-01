@@ -59,6 +59,38 @@ class CoreTests(unittest.TestCase):
     def test_json_is_safe(self):
         self.assertNotIn("hunter2",json.dumps(analyze("ERROR password=hunter2")))
 
+    def test_complete_auth_and_cookie_headers(self):
+        for sample in ['Authorization: Basic dXNlcjpwYXNz',
+                       'Proxy-Authorization: Digest username="privateuser", response="privatehash"',
+                       'Cookie: session=firstvalue; refresh=secondvalue',
+                       'Set-Cookie: session=thirdvalue; Path=/; HttpOnly',
+                       '"Authorization": "Basic fourthvalue", "status": 401']:
+            with self.subTest(sample=sample):
+                output = redact(sample)
+                for secret in ["dXNlcjpwYXNz", "privateuser", "privatehash",
+                               "firstvalue", "secondvalue", "thirdvalue", "fourthvalue"]:
+                    self.assertNotIn(secret, output)
+
+    def test_url_credentials(self):
+        output = redact("ERROR postgresql://dbuser:dbpass@example.org:5432/db")
+        self.assertNotIn("dbuser", output)
+        self.assertNotIn("dbpass", output)
+        self.assertIn("example.org:5432/db", output)
+
+    def test_pem_preserves_evidence_line_numbers(self):
+        text = ("start\n-----BEGIN RSA PRIVATE KEY-----\n"
+                "privatebody\n-----END RSA PRIVATE KEY-----\nPermission denied")
+        report = analyze(text)
+        self.assertNotIn("privatebody", report["redacted_log"])
+        self.assertEqual(report["line_count"], 5)
+        self.assertEqual(report["findings"][0]["evidence"][0]["line"], 5)
+
+    def test_header_redaction_preserves_following_line(self):
+        report = analyze("Cookie: session=one; refresh=two\nPermission denied")
+        self.assertEqual(report["findings"][0]["evidence"][0]["line"], 2)
+        self.assertNotIn("one", report["redacted_log"])
+        self.assertNotIn("two", report["redacted_log"])
+
 class CliTests(unittest.TestCase):
     def run_file(self,text,args):
         with tempfile.NamedTemporaryFile() as stream:
