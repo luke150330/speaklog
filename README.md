@@ -4,7 +4,7 @@
 
 Turn server logs into plain-language explanations with evidence.
 
-**v0.1.1 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
+**v0.1.2 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
 Chinese and English reports. No telemetry, account or shared API key.
 
 ## Quick start
@@ -18,6 +18,7 @@ then change into its directory before running the commands below.
 python3 -m speaklog examples/nginx.log
 python3 -m speaklog examples/systemd.log --lang en
 python3 -m speaklog examples/nginx.log --format json
+python3 -m speaklog --version
 ```
 
 Install in an isolated environment:
@@ -65,6 +66,21 @@ Do not put secrets in command arguments, GitHub issues or committed files.
 AI requests are limited to 24,000 redacted bytes; offline input to 2 MiB.
 Redirects are rejected. No URL in a log is visited.
 Provider advice is unverified, displayed as text and never executed.
+
+If AI configuration, network or response handling fails, SpeakLog still prints
+the offline report and a safe warning. JSON adds an `ai_error` field; raw provider
+errors and response bodies are not displayed.
+
+## Exit codes and troubleshooting
+
+- `0`: requested processing completed, including when no known symptom matches.
+- `1`: offline report produced, but requested AI advice is unavailable.
+- `2`: invalid arguments, missing consent, unreadable file, invalid UTF-8,
+  oversized input or an output error.
+
+An exit code is not a service health verdict. When redirecting output in a script,
+keep the report even if the exit code is `1`. Missing files, encoding and size
+errors include specific Chinese/English guidance without exposing input data.
 
 ## Privacy and limitations
 

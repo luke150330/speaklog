@@ -1,6 +1,7 @@
 import contextlib
 import io
 import json
+import http.client
 import os
 import tempfile
 import unittest
@@ -94,7 +95,7 @@ class CoreTests(unittest.TestCase):
 class CliTests(unittest.TestCase):
     def run_file(self,text,args):
         with tempfile.NamedTemporaryFile() as stream:
-            stream.write(text.encode())
+            stream.write(text if isinstance(text, bytes) else text.encode())
             stream.flush()
             out,err=io.StringIO(),io.StringIO()
             with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
@@ -118,8 +119,79 @@ class CliTests(unittest.TestCase):
     def test_provider_error_not_exposed(self):
         with patch("speaklog.cli.explain",side_effect=ValueError("private-key-secret")):
             code,out,err=self.run_file("ERROR hello",["--ai","--consent-send"])
-        self.assertEqual(code,2)
+        self.assertEqual(code,1)
         self.assertNotIn("private-key-secret",out+err)
+        self.assertIn("SpeakLog", out)
+
+    def test_ai_failure_keeps_json_report(self):
+        with patch("speaklog.cli.explain",side_effect=ValueError("private-provider-detail")):
+            code,out,err=self.run_file("Permission denied",["--ai","--consent-send","--format","json"])
+        self.assertEqual(code,1)
+        report = json.loads(out)
+        self.assertEqual(report["findings"][0]["code"],"permission")
+        self.assertIn("ai_error",report)
+        self.assertNotIn("private-provider-detail",out+err)
+
+    def test_ai_timeout_keeps_markdown(self):
+        with patch("speaklog.cli.explain",side_effect=TimeoutError("private-detail")):
+            code,out,err=self.run_file("Permission denied",["--ai","--consent-send","--lang","en"])
+        self.assertEqual(code,1)
+        self.assertIn("Operation denied",out)
+        self.assertIn("offline",out+err)
+        self.assertNotIn("private-detail",out+err)
+
+    def test_malformed_transport_keeps_report(self):
+        with patch("speaklog.cli.explain",side_effect=http.client.IncompleteRead(b"secret")):
+            code,out,err=self.run_file("Permission denied",["--ai","--consent-send"])
+        self.assertEqual(code,1)
+        self.assertIn("SpeakLog",out)
+        self.assertNotIn("secret",out+err)
+
+    def test_missing_ai_configuration_does_not_open_network(self):
+        with patch.dict(os.environ, {}, clear=True), patch("urllib.request.build_opener") as network:
+            code,out,_=self.run_file("Permission denied",["--ai","--consent-send","--format","json"])
+        self.assertEqual(code,1)
+        self.assertIn("ai_error",json.loads(out))
+        network.assert_not_called()
+
+    def test_successful_ai_is_zero_and_redacted(self):
+        with patch("speaklog.cli.explain",return_value="Check service. token=syntheticreply"):
+            code,out,_=self.run_file("Permission denied",["--ai","--consent-send","--format","json"])
+        self.assertEqual(code,0)
+        report=json.loads(out)
+        self.assertIn("ai_advice_unverified",report)
+        self.assertNotIn("ai_error",report)
+        self.assertNotIn("syntheticreply",out)
+
+    def test_missing_file_help(self):
+        with tempfile.TemporaryDirectory() as folder:
+            out,err=io.StringIO(),io.StringIO()
+            with contextlib.redirect_stdout(out),contextlib.redirect_stderr(err):
+                code=main([folder+"/missing.log","--lang","en"])
+        self.assertEqual(code,2)
+        self.assertIn("file",err.getvalue())
+        self.assertIn("not found",err.getvalue())
+        self.assertEqual(out.getvalue(),"")
+
+    def test_encoding_help(self):
+        code,out,err=self.run_file(b"\xff\xfe",["--lang","en"])
+        self.assertEqual(code,2)
+        self.assertIn("UTF-8",err)
+        self.assertEqual(out,"")
+
+    def test_size_help(self):
+        code,out,err=self.run_file(b"x"*(MAX_BYTES+1),["--lang","en"])
+        self.assertEqual(code,2)
+        self.assertIn("2 MiB",err)
+        self.assertEqual(out,"")
+
+    def test_version(self):
+        out=io.StringIO()
+        with contextlib.redirect_stdout(out), self.assertRaises(SystemExit) as raised:
+            main(["--version"])
+        self.assertEqual(raised.exception.code,0)
+        from speaklog import __version__
+        self.assertIn(__version__,out.getvalue())
 
     def test_preview(self):
         code,out,_=self.run_file("token=hide123",["--redact-only"])

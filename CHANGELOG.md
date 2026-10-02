@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2 — 2026-10-02
+- Preserve offline Markdown/JSON reports when optional AI fails, including
+  timeouts and malformed HTTP transport; return exit code 1 with a safe warning.
+- Add specific bilingual input error messages and document exit codes.
+- Add --version and nine regression/success-path tests.
+- No live-provider compatibility or diagnosis-quality claims are added.
+
 ## 0.1.1 — 2026-10-01
 - Fix partial redaction of Basic/Digest authentication and multi-value Cookies.
 - Redact URL credentials and complete PEM private keys, retaining evidence lines.

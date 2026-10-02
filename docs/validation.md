@@ -27,3 +27,15 @@ This is a correctness smoke test, not an accuracy benchmark or privacy audit.
 - The v0.1.0 GitHub matrix run passed on Python 3.10, 3.12 and 3.13:
   https://github.com/luke150330/speaklog/actions/runs/36734847561
 - No production logs or live AI providers were used for this update.
+
+## v0.1.2 validation — 2026-10-02
+
+- Reproduced report loss after optional-provider failure and unhandled
+  incomplete HTTP reads in the previous CLI.
+- All 30 unit tests pass locally, covering AI-failure JSON/Markdown retention,
+  missing configuration without network access, mocked successful responses,
+  credential-safe warnings, version output, encoding, size and file errors.
+- No real provider call or production log was used.
+- Built and installed the 0.1.2 wheel in a temporary virtual environment;
+  outside the source directory, the real CLI reported the correct version and
+  retained a parseable JSON report with exit code 1 when no provider was configured.
