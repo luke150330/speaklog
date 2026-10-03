@@ -15,3 +15,7 @@ input returns 2. Neither code claims the target service is healthy or unhealthy.
 
 Tests mock network transport; live-provider performance and diagnosis quality
 still require evaluation with consented, sanitized examples.
+
+The symptom catalog includes common Nginx upstream failures such as an empty
+healthy-upstream set, premature connection close and upstream-name resolution
+failure. These are reported as observations, not confirmed causes.

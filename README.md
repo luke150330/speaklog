@@ -4,7 +4,7 @@
 
 Turn server logs into plain-language explanations with evidence.
 
-**v0.1.2 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
+**v0.1.3 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
 Chinese and English reports. No telemetry, account or shared API key.
 
 ## Quick start
@@ -38,7 +38,7 @@ journalctl -u nginx --no-pager -n 200 | speaklog -
 
 ## What you get
 
-- Port conflict, permission, storage, refused connection, timeout and service failure explanations.
+- Port conflict, permission, storage, refused connection, timeout, unavailable Nginx upstream and service failure explanations.
 - Repeated symptoms grouped with occurrence counts and up to five original evidence lines.
 - Suggested checks and explicit uncertainty; no automatic repair or shell execution.
 - Unknown errors shown instead of inventing an explanation.

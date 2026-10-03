@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 — 2026-10-03
+- Explain common Nginx upstream failures: no live upstreams, premature close,
+  response-header failure and unresolved upstream host.
+- Keep the report symptom-based and avoid claiming a confirmed root cause.
+- Update the synthetic Nginx sample and usage documentation.
+
 ## 0.1.2 — 2026-10-02
 - Preserve offline Markdown/JSON reports when optional AI fails, including
   timeouts and malformed HTTP transport; return exit code 1 with a safe warning.
