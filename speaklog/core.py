@@ -72,8 +72,16 @@ def markdown(report):
             # Indented code avoids a log closing a Markdown fence.
             out += [("证据行 " if zh else "Evidence line ") + str(e["line"]) + ":", "",
                     *["    " + line for line in e["text"].splitlines()], ""]
+        omitted = f.get("evidence_omitted", 0)
+        if omitted:
+            out += [f"另有 {omitted} 条证据未展示（每类最多展示 5 条）。" if zh else
+                    f"{omitted} additional evidence lines not shown (up to 5 per symptom).", ""]
     if report["unclassified"]:
         out += ["## " + ("尚未解释的错误" if zh else "Unclassified errors"), ""]
         for e in report["unclassified"]:
             out += [str(e["line"]) + ":", "", "    " + e["text"], ""]
+        omitted = report.get("unclassified_omitted", 0)
+        if omitted:
+            out += [f"另有 {omitted} 条尚未解释的错误未展示（最多展示 20 条）。" if zh else
+                    f"{omitted} additional unclassified error lines not shown (up to 20 displayed).", ""]
     return "\n".join(out)

@@ -37,6 +37,36 @@ class CoreTests(unittest.TestCase):
     def test_unknown_error(self):
         self.assertEqual(analyze("hello\nERROR strange problem")["unclassified"][0]["line"],2)
 
+    def test_markdown_reports_omitted_evidence_bilingually(self):
+        for lang, notice in [("zh", "另有 4 条证据未展示"),
+                             ("en", "4 additional evidence lines not shown")]:
+            with self.subTest(lang=lang):
+                output = markdown(analyze("\n".join(["Permission denied"] * 9), lang))
+                self.assertIn(notice, output)
+                self.assertEqual(output.count("    Permission denied"), 5)
+
+    def test_markdown_reports_omitted_unknown_errors(self):
+        text = "\n".join(f"ERROR unfamiliar-{n}" for n in range(23))
+        for lang, notice in [("zh", "另有 3 条尚未解释的错误未展示"),
+                             ("en", "3 additional unclassified error lines not shown")]:
+            with self.subTest(lang=lang):
+                output = markdown(analyze(text, lang))
+                self.assertIn(notice, output)
+                self.assertNotIn("unfamiliar-22", output)
+
+    def test_markdown_does_not_claim_omissions_at_limits(self):
+        report = analyze("\n".join(["Permission denied"] * 5 + ["ERROR unknown"] * 20), "en")
+        self.assertNotIn("not shown", markdown(report))
+        self.assertEqual(report["findings"][0]["evidence_omitted"], 0)
+        self.assertEqual(report["unclassified_omitted"], 0)
+
+    def test_markdown_handles_older_report_without_omission_fields(self):
+        report = analyze("Permission denied\nERROR unknown", "en")
+        report.pop("unclassified_omitted")
+        report["findings"][0].pop("evidence_omitted")
+        self.assertIn("Operation denied", markdown(report))
+        self.assertNotIn("not shown", markdown(report))
+
     def test_secret_redaction(self):
         samples = ['password=hunter2', 'token=abc123', '"api_key": "abcdef"',
                    'Authorization: Bearer supersecret', 'Cookie: session=abcdef',

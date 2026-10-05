@@ -4,7 +4,7 @@
 
 Turn server logs into plain-language explanations with evidence.
 
-**v0.1.3 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
+**v0.1.4 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
 Chinese and English reports. No telemetry, account or shared API key.
 
 ## Quick start
@@ -42,6 +42,10 @@ journalctl -u nginx --no-pager -n 200 | speaklog -
 - Repeated symptoms grouped with occurrence counts and up to five original evidence lines.
 - Suggested checks and explicit uncertainty; no automatic repair or shell execution.
 - Unknown errors shown instead of inventing an explanation.
+- Markdown explicitly reports omitted evidence and unknown-error counts when
+  display limits are reached (five evidence lines per symptom, 20 unknown errors).
+  Counts and original line references remain available in JSON; its redacted log
+  is still sensitive and should be reviewed locally before sharing.
 - Best-effort redaction of common credentials, email addresses and IPv4 addresses.
 - Full Authorization/Cookie header values, URL credentials and complete PEM
   private-key blocks are redacted; original evidence line numbering is retained.

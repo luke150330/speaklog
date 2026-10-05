@@ -1,5 +1,15 @@
 # v0.1.0 validation
 
+## v0.1.4 regression validation — 2026-10-05
+
+- Four new tests reproduced four failing bilingual assertions before the fix:
+  Markdown omitted evidence/unknown-error counts without disclosing truncation.
+- All 34 tests pass locally after the fix, including exact display limits,
+  original evidence counts and compatibility with older report dictionaries.
+- Only synthetic logs and mocked providers were used; no production logs,
+  production credentials or live AI requests were read or transmitted.
+- GitHub CI outcome is recorded separately in the maintainer project state.
+
 Local validation date: 2026-10-01. Python 3.12.9 on macOS.
 
 - 17 unit tests pass: six known symptoms, counts/line references, unknown errors,

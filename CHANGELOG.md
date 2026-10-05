@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 — 2026-10-05
+- Show bilingual omission counts in Markdown when evidence or unclassified
+  errors exceed display limits; no longer silently hide the truncation.
+- Preserve existing JSON fields and accept older reports without omission fields.
+- Add four regression tests; no new network calls or runtime dependencies.
+
 ## 0.1.3 — 2026-10-03
 - Explain common Nginx upstream failures: no live upstreams, premature close,
   response-header failure and unresolved upstream host.
