@@ -4,8 +4,12 @@
 
 Turn server logs into plain-language explanations with evidence.
 
-**v0.1.4 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
+**v0.1.5 — experimental.** Local-first, zero runtime dependencies, Python 3.10+.
 Chinese and English reports. No telemetry, account or shared API key.
+
+Recognizes explicit request/connection limiting messages and "Too Many Requests".
+A status number alone is not used to infer a cause. Rate-limit guidance preserves
+security protections and does not label traffic as malicious without evidence.
 
 ## Quick start
 

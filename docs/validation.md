@@ -1,5 +1,12 @@
 # v0.1.0 validation
 
+## v0.1.5 regression validation — 2026-10-07
+
+- Added four synthetic rate-limit regression tests: explicit messages, negative
+  numeric cases, evidence/redaction and safe bilingual guidance.
+- No production logs, credentials or live AI requests used.
+- Local test and GitHub CI results are recorded in the maintainer project state.
+
 ## v0.1.4 regression validation — 2026-10-05
 
 - Four new tests reproduced four failing bilingual assertions before the fix:

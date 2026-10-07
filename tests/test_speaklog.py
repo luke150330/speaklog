@@ -11,6 +11,32 @@ from speaklog.cli import main
 from speaklog.ai import explain, NoRedirect
 
 class CoreTests(unittest.TestCase):
+    def test_rate_limit_symptoms(self):
+        for sample in ['limiting requests, excess: 10.500 by zone "api"',
+                       'limiting connections by zone "connections"',
+                       'ERROR rate limit exceeded', 'HTTP 429 Too Many Requests']:
+            with self.subTest(sample=sample):
+                finding = analyze(sample)["findings"][0]
+                self.assertEqual(finding["code"], "rate_limited")
+                self.assertEqual(finding["certainty"], "observed-symptom")
+
+    def test_rate_limit_does_not_match_status_number_alone(self):
+        self.assertEqual(analyze('GET /images/429.png HTTP/1.1 200')["findings"], [])
+        self.assertEqual(analyze('request_id=429 result=ok')["findings"], [])
+
+    def test_rate_limit_evidence_and_redaction(self):
+        report = analyze('startup\nERROR rate limit exceeded token=synthetic-secret')
+        self.assertEqual(report["findings"][0]["evidence"][0]["line"], 2)
+        self.assertNotIn('synthetic-secret', json.dumps(report))
+
+    def test_rate_limit_bilingual_safe_guidance(self):
+        for lang, title, guidance in [('zh', '请求触发限流', '不要直接关闭保护'),
+                                      ('en', 'Requests triggered a rate limit', 'do not disable protections blindly')]:
+            with self.subTest(lang=lang):
+                output = markdown(analyze('too many requests', lang))
+                self.assertIn(title, output)
+                self.assertIn(guidance, output)
+
     def test_each_rule(self):
         for text, code in [("Address already in use","port_busy"),
                            ("Permission denied","permission"),

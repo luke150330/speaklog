@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 — 2026-10-07
+- Explain explicit Nginx request/connection limiting and rate-limit symptoms.
+- Do not infer abuse, a limiting layer, or a cause from a bare status number.
+- Add four tests for matching, negative cases, evidence/redaction and bilingual
+  guidance; no network calls or new runtime dependencies.
+
 ## 0.1.4 — 2026-10-05
 - Show bilingual omission counts in Markdown when evidence or unclassified
   errors exceed display limits; no longer silently hide the truncation.

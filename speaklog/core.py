@@ -4,6 +4,7 @@ from . import __version__
 
 MAX_BYTES = 2 * 1024 * 1024
 RULES = [
+    ("rate_limited", r"\blimiting requests, excess:|\blimiting connections by zone\b|\brate limit exceeded\b|\btoo many requests\b", "请求触发限流", "Requests triggered a rate limit", "日志报告请求或连接受到限流；不能仅凭此判断是恶意访问，也不能确定限制属于哪一层。", "The log reports a request or connection limit; this alone does not prove abuse or identify every limiting layer.", "核对该时间段的请求量、限流规则和代理/应用日志；不要直接关闭保护。", "Compare request volume, configured limits and proxy/application logs for the same time window; do not disable protections blindly."),
     ("port_busy", r"address already in use|bind\(\).*failed.*98", "端口已被占用", "Port is already in use", "日志报告监听端口冲突；占用进程尚未确认。", "The log reports a listening-port conflict; the owning process is not confirmed.", "查看 ss -ltnp 或 lsof -i 的结果，确认占用者后再决定处理方式。", "Inspect ss -ltnp or lsof -i to identify the owner before changing anything."),
     ("permission", r"permission denied|operation not permitted", "操作被权限拒绝", "Operation denied by permissions", "进程被拒绝访问资源；可能涉及文件权限、运行用户或安全策略。", "Access was denied; filesystem permissions, service identity or security policy may be involved.", "检查日志所指资源的权限和服务运行用户，不要直接 chmod 777。", "Check resource permissions and service identity; do not blindly chmod 777."),
     ("disk_full", r"no space left on device", "存储空间或 inode 可能耗尽", "Storage capacity or inodes may be exhausted", "写入失败，日志报告设备没有可用空间。", "A write failed because the device reports no available space.", "检查 df -h 和 df -i，不要未经确认删除文件。", "Inspect df -h and df -i; do not delete files without review."),
