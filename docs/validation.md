@@ -1,5 +1,15 @@
 # v0.1.0 validation
 
+## Unreleased regression validation — 2026-10-11
+
+- Baseline: all 38 existing tests passed on Python 3.12.14.
+- New regression cases reproduced seven failing assertions for truncated PEM
+  private keys, mismatched END markers and CR-only evidence line numbering.
+- After the fix, all 43 tests pass, including a mocked AI request verifying
+  that a truncated key body is absent and original line references survive.
+- Only synthetic inputs and mocked providers were used. No production logs,
+  credentials or live AI requests were accessed. New remote CI is not yet run.
+
 ## v0.1.5 regression validation — 2026-10-07
 
 - Added four synthetic rate-limit regression tests: explicit messages, negative
@@ -56,3 +66,4 @@ This is a correctness smoke test, not an accuracy benchmark or privacy audit.
 - Built and installed the 0.1.2 wheel in a temporary virtual environment;
   outside the source directory, the real CLI reported the correct version and
   retained a parseable JSON report with exit code 1 when no provider was configured.
+

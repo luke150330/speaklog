@@ -11,6 +11,37 @@ from speaklog.cli import main
 from speaklog.ai import explain, NoRedirect
 
 class CoreTests(unittest.TestCase):
+    def test_incomplete_pem_redacts_through_end_of_input(self):
+        for label in ['PRIVATE KEY', 'RSA PRIVATE KEY', 'EC PRIVATE KEY',
+                      'OPENSSH PRIVATE KEY', 'ENCRYPTED PRIVATE KEY']:
+            with self.subTest(label=label):
+                text = f'start\n-----BEGIN {label}-----\nsynthetic-private-body\nprivate-tail'
+                output = redact(text)
+                self.assertNotIn('synthetic-private-body', output)
+                self.assertNotIn('private-tail', output)
+                self.assertEqual(len(output.splitlines()), len(text.splitlines()))
+
+    def test_incomplete_pem_mismatched_end_is_not_trusted(self):
+        output = redact('-----BEGIN RSA PRIVATE KEY-----\nsynthetic-body\n'
+                        '-----END EC PRIVATE KEY-----\nsynthetic-tail')
+        self.assertNotIn('synthetic-body', output)
+        self.assertNotIn('synthetic-tail', output)
+
+    def test_pem_line_endings_and_following_evidence(self):
+        for ending in ['\n', '\r\n', '\r']:
+            with self.subTest(ending=repr(ending)):
+                text = ending.join(['start', '-----BEGIN PRIVATE KEY-----',
+                                    'synthetic-body', '-----END PRIVATE KEY-----',
+                                    'Permission denied'])
+                report = analyze(text)
+                self.assertNotIn('synthetic-body', report['redacted_log'])
+                self.assertEqual(report['line_count'], 5)
+                self.assertEqual(report['findings'][0]['evidence'][0]['line'], 5)
+
+    def test_public_pem_block_remains_visible(self):
+        text = '-----BEGIN PUBLIC KEY-----\npublic-body\n-----END PUBLIC KEY-----'
+        self.assertEqual(redact(text), text)
+
     def test_rate_limit_symptoms(self):
         for sample in ['limiting requests, excess: 10.500 by zone "api"',
                        'limiting connections by zone "connections"',
@@ -255,6 +286,19 @@ class CliTests(unittest.TestCase):
         self.assertNotIn("hide123",out)
 
 class AiTests(unittest.TestCase):
+    def test_mock_request_omits_incomplete_private_key(self):
+        response = unittest.mock.MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {'choices': [{'message': {'content': 'Possible cause'}}]}).encode()
+        opener = unittest.mock.MagicMock()
+        opener.open.return_value = response
+        with patch('urllib.request.build_opener', return_value=opener):
+            explain(analyze('ERROR example\n-----BEGIN PRIVATE KEY-----\nsynthetic-key-body'),
+                    'https://example.com/chat', 'model', 'synthetic-key')
+        body = json.loads(opener.open.call_args.args[0].data)
+        self.assertNotIn('synthetic-key-body', body['messages'][1]['content'])
+        self.assertIn('3: [PRIVATE KEY REDACTED]', body['messages'][1]['content'])
+
     def test_bad_endpoints(self):
         for url in ["http://example.com","https://user:pass@example.com",
                     "https://example.com?token=x","https://example.com/#x"]:
@@ -285,3 +329,4 @@ class AiTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

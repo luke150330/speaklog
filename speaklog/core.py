@@ -22,12 +22,13 @@ IPV4 = re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])")
 ANSI = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 HEADER = re.compile(r"""(?im)(\b(?:proxy-authorization|authorization|set-cookie|cookie)\b["']?[ \t]*[:=][ \t]*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\r\n]+)""")
 URL_CREDENTIALS = re.compile(r"""(?i)(\b[a-z][a-z0-9+.-]*://)[^/\s@"']+@""")
-PRIVATE_KEY = re.compile(r"-----BEGIN ([A-Z0-9 ]*PRIVATE KEY)-----.*?-----END \1-----", re.S)
+PRIVATE_KEY = re.compile(r"-----BEGIN ([A-Z0-9 ]*PRIVATE KEY)-----.*?(?:-----END \1-----|\Z)", re.S)
 
 def redact(text):
     text = ANSI.sub("", text)
-    # Preserve newlines so evidence continues to refer to original input lines.
-    text = PRIVATE_KEY.sub(lambda m: "[PRIVATE KEY REDACTED]" + "\n" * m[0].count("\n"), text)
+    # An unterminated key is sensitive through EOF. Keep each line ending and
+    # a placeholder on every nonempty line, including a final unterminated line.
+    text = PRIVATE_KEY.sub(lambda m: re.sub(r"[^\r\n]+", "[PRIVATE KEY REDACTED]", m[0]), text)
     text = URL_CREDENTIALS.sub(lambda m: m[1] + "[CREDENTIALS]@", text)
     # Unquoted headers are conservatively redacted through end-of-line.
     text = HEADER.sub(lambda m: m[1] + "[REDACTED]", text)
@@ -86,3 +87,4 @@ def markdown(report):
             out += [f"另有 {omitted} 条尚未解释的错误未展示（最多展示 20 条）。" if zh else
                     f"{omitted} additional unclassified error lines not shown (up to 20 displayed).", ""]
     return "\n".join(out)
+
