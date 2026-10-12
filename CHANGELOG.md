@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.6 — 2026-10-12
 - Redact recognized PEM private-key blocks through end of input when the matching
   END marker is missing, conservatively hiding any later diagnostic text too.
 - Preserve original evidence line numbers for LF, CRLF and CR-only PEM logs.
