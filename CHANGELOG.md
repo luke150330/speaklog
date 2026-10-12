@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+- Redact recognized PEM private-key blocks through end of input when the matching
+  END marker is missing, conservatively hiding any later diagnostic text too.
+- Preserve original evidence line numbers for LF, CRLF and CR-only PEM logs.
+- Add regression tests for truncated/mismatched blocks and line endings, plus
+  a negative public-key example. No live provider calls or runtime dependencies.
+
 ## 0.1.5 — 2026-10-07
 - Explain explicit Nginx request/connection limiting and rate-limit symptoms.
 - Do not infer abuse, a limiting layer, or a cause from a bare status number.
@@ -35,3 +42,4 @@
 - First experimental offline analyzer and optional opt-in AI adapter.
 - Synthetic examples, privacy documentation and automated tests.
 - Not yet validated against a production log corpus or live AI provider.
+

@@ -53,6 +53,8 @@ journalctl -u nginx --no-pager -n 200 | speaklog -
 - Best-effort redaction of common credentials, email addresses and IPv4 addresses.
 - Full Authorization/Cookie header values, URL credentials and complete PEM
   private-key blocks are redacted; original evidence line numbering is retained.
+  A recognized private-key BEGIN marker without a matching END marker causes
+  all remaining input to be redacted conservatively, including later diagnostics.
 
 For example, `Address already in use` becomes:
 “Port is already in use. The log reports a listening-port conflict;
@@ -95,8 +97,8 @@ errors include specific Chinese/English guidance without exposing input data.
 Redaction is **not a security guarantee**. IPv6 addresses, personal names,
 paths and unknown secret formats may remain. Review before sharing.
 Unquoted sensitive headers are removed through the end of their line, so adjacent
-diagnostic fields on that line may also be omitted. Incomplete PEM blocks are not
-guaranteed to be redacted. This release is still not a comprehensive secret scanner.
+diagnostic fields on that line may also be omitted. PEM fragments without a
+recognized BEGIN marker may remain. This release is still not a comprehensive secret scanner.
 No root-cause confirmation, timestamp correlation, continuous monitoring or
 full log-format parser is claimed. A report with no findings does not prove health.
 Remote AI may retain data according to its own policies. Offline mode makes no network calls.
@@ -117,3 +119,4 @@ All example logs are synthetic. MIT license.
 SpeakLog 把服务器日志整理成“发生了什么、证据在哪、下一步检查什么”。
 默认离线运行；AI 模式需要用户自行配置服务、密钥并明确同意发送日志。
 脱敏是尽力处理，不保证覆盖全部敏感数据；结论是症状解释，不是已确认根因。
+
